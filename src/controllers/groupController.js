@@ -72,3 +72,17 @@ exports.updateGroup = async (req, res) => {
     res.status(500).json({ code: 500, msg: "服务器错误", data: {} });
   }
 };
+exports.deleteGroupById = async (req, res) => {
+  const { id } = req.params;
+
+  // 参数校验
+  if (!id) {
+    return res
+      .status(400)
+      .json({ code: 400, msg: "分组 ID 是必填项", data: {} });
+  }
+
+  // 调用服务层
+  const result = await groupService.deleteGroupById(id);
+  res.status(200).json(result);
+};

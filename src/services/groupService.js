@@ -73,3 +73,20 @@ exports.updateGroup = async (groupData) => {
     throw new Error("数据库操作失败");
   }
 };
+exports.deleteGroupById = async (id) => {
+  try {
+    // 检查组别是否存在
+    const exists = await GroupModel.existsById(id);
+    if (!exists) {
+      return { code: 400, msg: "组别不存在", data: {} };
+    }
+
+    // 删除组别
+    await GroupModel.delGroupById(id);
+
+    return { code: 200, msg: "删除成功", data: {} };
+  } catch (error) {
+    console.error("Error in deleteGroup:", error.message);
+    throw new Error("数据库操作失败");
+  }
+};

@@ -85,6 +85,17 @@ class GroupModel {
     );
     return result;
   }
+  static async delGroupById(id) {
+    const [result] = await pool.query(
+      `
+      UPDATE task_groups
+      SET is_deleted = 1
+      WHERE id = ?
+      `,
+      [id]
+    );
+    return result;
+  }
 }
 
 module.exports = GroupModel;

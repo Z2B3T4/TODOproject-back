@@ -8,4 +8,6 @@ router.post("/", groupController.createGroup);
 router.get("/", groupController.getAllGroups);
 // 修改
 router.put("/", groupController.updateGroup);
+// 删除
+router.delete("/:id", groupController.deleteGroupById);
 module.exports = router;

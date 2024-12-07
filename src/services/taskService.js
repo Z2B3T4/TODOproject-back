@@ -450,17 +450,16 @@ exports.searchTasks = async (searchParams) => {
     let sql = `
       SELECT *
       FROM tasks
-      WHERE is_deleted = 0
     `;
     const params = [];
 
     // 类型查询条件
     if (flag === 0) {
-      sql += " AND is_completed = 0"; // 未完成
+      sql += " where  is_completed = 0 AND is_deleted = 0"; // 未完成
     } else if (flag === 1) {
-      sql += " AND is_completed = 1"; // 已完成
+      sql += " where  is_completed = 1 AND is_deleted = 0"; // 已完成
     } else if (flag === 2) {
-      sql += " AND is_deleted = 1"; // 已删除
+      sql += " where  is_deleted = 1"; // 已删除
     }
 
     // 模糊查询：名称
