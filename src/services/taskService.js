@@ -168,13 +168,13 @@ exports.updateTask = async (taskData) => {
   }
 };
 
-exports.deleteTask = async ({ id, type }) => {
+exports.deleteTask = async (id, type) => {
   try {
     // 验证参数
     if (!id || !type) {
       throw new Error("任务 ID 和类型是必填项");
     }
-
+    console.log("传递到service中的", id, type);
     let tableName;
     if (type === 1) {
       tableName = "tasks";
@@ -201,53 +201,6 @@ exports.deleteTask = async ({ id, type }) => {
     return { code: 200, msg: "删除成功", data: {} };
   } catch (error) {
     console.error("Error in deleteTask:", error.message);
-    throw new Error("数据库操作失败");
-  }
-};
-
-exports.getTasks = async (type, flag) => {
-  try {
-    // 判断查询的表
-
-    let tableName;
-    if (type === 1) {
-      tableName = "tasks";
-    } else if (type === 2) {
-      tableName = "subtasks";
-    } else {
-      return { code: 400, msg: "无效的任务类型", data: [] };
-    }
-    let sql = `SELECT * FROM ${tableName} `;
-    if (flag == 0) {
-      sql += `WHERE is_completed = 0 AND is_deleted = 0 ORDER BY sort`;
-    } else if (flag == 1) {
-      sql += `WHERE is_completed = 1 AND is_deleted = 0 ORDER BY sort`;
-    } else if (flag == 2) {
-      sql += `WHERE is_deleted = 1 ORDER BY sort`;
-    }
-    // 查询未完成任务
-    const [rows] = await pool.query(sql);
-
-    // 格式化时间字段为 yyyy-mm-dd
-    const formattedRows = rows.map((row) => ({
-      ...row,
-      start_time: row.start_time
-        ? format(new Date(row.start_time), "yyyy-MM-dd")
-        : null,
-      end_time: row.end_time
-        ? format(new Date(row.end_time), "yyyy-MM-dd")
-        : null,
-      created_at: row.created_at
-        ? format(new Date(row.created_at), "yyyy-MM-dd")
-        : null,
-      updated_at: row.updated_at
-        ? format(new Date(row.updated_at), "yyyy-MM-dd")
-        : null,
-    }));
-
-    return { code: 200, msg: "查询成功", data: formattedRows };
-  } catch (error) {
-    console.error("Error in getIncompleteTasks:", error.message);
     throw new Error("数据库操作失败");
   }
 };
@@ -383,55 +336,6 @@ exports.finishTask = async ({ id, type }) => {
   }
 };
 
-exports.getTasksByPage = async ({ page, pageSize, flag }) => {
-  try {
-    // 验证分页参数
-    if (!page || !pageSize || page < 1 || pageSize < 1) {
-      return { code: 400, msg: "分页参数缺失或无效", data: [] };
-    }
-
-    const offset = (page - 1) * pageSize; // 计算偏移量
-
-    let sql = `SELECT * FROM tasks `;
-    if (flag == 0) {
-      sql += `WHERE is_completed = 0 AND is_deleted = 0 ORDER BY sort`;
-    } else if (flag == 1) {
-      sql += `WHERE is_completed = 1 AND is_deleted = 0 ORDER BY sort`;
-    } else if (flag == 2) {
-      sql += `WHERE is_deleted = 1 ORDER BY sort`;
-    }
-    sql += ` LIMIT ? OFFSET ?`;
-    console.log(sql);
-    // 查询 tasks 表数据
-    const [rows] = await pool.query(sql, [
-      parseInt(pageSize),
-      parseInt(offset),
-    ]);
-
-    // 格式化时间字段为 yyyy-MM-dd
-    const formattedRows = rows.map((row) => ({
-      ...row,
-      start_time: row.start_time
-        ? format(new Date(row.start_time), "yyyy-MM-dd")
-        : null,
-      end_time: row.end_time
-        ? format(new Date(row.end_time), "yyyy-MM-dd")
-        : null,
-      created_at: row.created_at
-        ? format(new Date(row.created_at), "yyyy-MM-dd")
-        : null,
-      updated_at: row.updated_at
-        ? format(new Date(row.updated_at), "yyyy-MM-dd")
-        : null,
-    }));
-
-    return { code: 200, msg: "查询成功", data: formattedRows };
-  } catch (error) {
-    console.error("Error in getTasksByPage:", error.message);
-    throw new Error("数据库操作失败");
-  }
-};
-
 exports.searchTasks = async (searchParams) => {
   try {
     const {
@@ -449,17 +353,17 @@ exports.searchTasks = async (searchParams) => {
     // 基础 SQL 查询
     let sql = `
       SELECT *
-      FROM tasks
+      FROM tasks where 1 
     `;
     const params = [];
 
     // 类型查询条件
     if (flag === 0) {
-      sql += " where  is_completed = 0 AND is_deleted = 0"; // 未完成
+      sql += " and is_completed = 0 AND is_deleted = 0"; // 未完成
     } else if (flag === 1) {
-      sql += " where  is_completed = 1 AND is_deleted = 0"; // 已完成
+      sql += " and is_completed = 1 AND is_deleted = 0"; // 已完成
     } else if (flag === 2) {
-      sql += " where  is_deleted = 1"; // 已删除
+      sql += " and is_deleted = 1"; // 已删除
     }
 
     // 模糊查询：名称
@@ -506,6 +410,7 @@ exports.searchTasks = async (searchParams) => {
     sql += " LIMIT ? OFFSET ?";
     params.push(parseInt(pageSize, 10), parseInt(offset, 10));
 
+    console.log(sql);
     // 执行查询
     const [rows] = await pool.query(sql, params);
 
